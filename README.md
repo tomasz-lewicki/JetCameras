@@ -10,3 +10,4 @@ __Common configs for IMX219__
 
 __Efficient image decimation/binning__
 
+__Purple Haze removal__
