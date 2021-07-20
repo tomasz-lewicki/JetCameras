@@ -1,5 +1,6 @@
 import cv2
 
+
 class IMX219:
     def __init__(
         self,
@@ -21,7 +22,7 @@ class IMX219:
         )
 
         self._gst_cap = cv2.VideoCapture(self._gst_str, cv2.CAP_GSTREAMER)
-    
+
     def read(self):
         retv, arr = self._gst_cap.read()
         return arr
@@ -30,55 +31,52 @@ class IMX219:
     def _make_gstreamer_sting(
         self,
         camera_id=0,
-        capture_width=3264,
-        capture_height=2464,
-        out_width=1024,
-        out_height=768,
+        capture_shape=(3264, 2464),
+        resize_to=None,
         framerate=21,
         flip_method=0,
     ):
-
-        gst_string = f"""
+        # Capture Part
+        source_str = f"""
         nvarguscamerasrc sensor_id={camera_id} ! 
         video/x-raw(memory:NVMM),
-        width=(int){capture_width}, height=(int){capture_height},
-        format=(string)NV12, framerate=(fraction){framerate}/1 !
-        nvvidconv flip-method={flip_method} !
-        video/x-raw, width=(int){out_width}, height=(int){out_height}, format=(string)BGRx !
-        videoconvert !
-        video/x-raw, format=(string)BGR !
-        appsink max-buffers=1 drop=true
-        """
+        width=(int){capture_shape[0]}, height=(int){capture_shape[0]},
+        format=(string)NV12, framerate=(fraction){framerate}/1 ! """
 
-        return gst_string
-    
+        # Convertion Part
+        (out_width, out_height) = (
+            (resize_to[0], resize_to[1])
+            if resize_to is not None
+            else (capture_width, capture_height)
+        )
+        conv_str = f"nvvidconv flip-method={flip_method} ! video/x-raw, width=(int){out_width}, height=(int){out_height}, format=(string)BGRx ! "
+
+        # Sink Part
+        sink_str = f"videoconvert ! video/x-raw, format=(string)BGR ! appsink max-buffers=1 drop=true"
+
+        gst_str = ""
+        gst_str += source_str
+        gst_str += conv_str if resize_to or flip_method else " "
+        gst_str += sink_str
+
+        return gst_str
+
     class Configs:
 
-        FHD29FPS={
-            'capture_size': (1920, 1080),
-            'output_size': (1920, 1080),
-            'fps': 29
-            }
-        
-        HD_30FPS={
-            'capture_size': (1280, 720),
-            'output_size': (1280, 720),
-            'fps': 30
-            }
-        
-        HD_60FPS={
-            'capture_size': (1280, 720),
-            'output_size': (1280, 720),
-            'fps': 60
-            }
+        # TODO: instead of resizing by default, add resize_to option
 
-        
+        FULL_FRAME = {"capture_size": (3264, 2464), "fps": 21}
+
+        FHD29FPS = {"capture_size": (1920, 1080), "fps": 29}
+
+        HD_30FPS = {"capture_size": (1280, 720), "fps": 30}
+
+        HD_60FPS = {"capture_size": (1280, 720), "fps": 60}
+
 
 # TODO: decimate
 
 #     class FHD30FPS:
-
-
 
 
 # _1080P_30FPS = {}
