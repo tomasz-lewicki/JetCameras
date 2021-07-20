@@ -1,14 +1,18 @@
 import time
+import sys
+
+sys.path.append("..")
+
 from JetCameras import IMX219
 
-
 if __name__ == "__main__":
-    
-    camera = IMX219(1, **IMX219.Configs.HD_60FPS)
 
-    while True:
+    camera = IMX219()
+
+    for i in range(0, 100):
 
         img = camera.read()
-        print(img)
-        time.sleep(.1)
+        print(img[0, 0])
+        time.sleep(0.01)
 
+    camera.close()
