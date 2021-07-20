@@ -3,7 +3,7 @@ import sys
 
 sys.path.append("..")
 
-from JetCameras import IMX219
+from JetCameras import IMX219, IMX185
 
 if __name__ == "__main__":
 
